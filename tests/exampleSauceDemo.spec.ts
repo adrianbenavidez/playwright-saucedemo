@@ -1,12 +1,22 @@
 import { test, expect } from "playwright/test";
+import { LoginPage } from "./pageObjects/LoginPage";
+import { ProductsPage } from "./pageObjects/ProductsPage";
+import { CartPage } from "./pageObjects/CartPage";
+import { CheckoutOnePage } from "./pageObjects/CheckoutOnePage";
+import { CheckoutTwoPage } from "./pageObjects/CheckoutTwoPage";
+import { CheckoutCompletePage } from "./pageObjects/CheckoutCompletePage";
 
 test("Login", async ({ page }) => {
-  await page.goto("https://saucedemo.com");
-  await expect(page).toHaveTitle("Swag Labs");
-  await page.locator("input[id='user-name']").fill("standard_user");
-  await page.locator("input[id='password']").fill("secret_sauce");
-  await page.locator("input[id='login-button']").click();
-  await expect(page.locator('//div[@class="app_logo"]')).toBeVisible();
+  await page.goto("https://saucedemo.com")
+  await expect(page).toHaveTitle("Swag Labs")
+
+  const login = new LoginPage(page)
+  await login.loginWithCredentials("standard_user", "secret_sauce")
+
+  const products = new ProductsPage(page)
+  products.checkLogo()
+
+
   await page.screenshot({ path: "screenshot/login.png", fullPage: true });
   //await page.pause()
 });
@@ -14,32 +24,34 @@ test("Login", async ({ page }) => {
 test("Purchase an item", async ({ page }) => {
   await page.goto("https://saucedemo.com");
   await expect(page).toHaveTitle("Swag Labs");
-  await page.locator("input[id='user-name']").fill("standard_user");
-  await page.locator("input[id='password']").fill("secret_sauce");
-  await page.locator("input[id='login-button']").click();
-  await expect(page.locator('//div[@class="app_logo"]')).toBeVisible();
-  await page.getByRole("button", { name: "Add to cart" }).first().click();
-  await page.locator('//a[@class="shopping_cart_link"]').click();
-  await expect(page.locator('//div[@class="cart_quantity"]')).toBeVisible();
 
-  await page.getByRole("button", { name: "Checkout" }).click();
-  await expect(page.locator('span[class="shopping_cart_badge"]')).toBeVisible();
+  const login = new LoginPage(page);
+  await login.loginWithCredentials("standard_user", "secret_sauce");
 
-  await page.getByRole("textbox", { name: "First Name" }).fill("Adrian");
-  await page.getByRole("textbox", { name: "Last Name" }).fill("Benavidez");
-  await page.getByRole("textbox", { name: "Zip/Postal Code" }).fill("5000");
+  const products = new ProductsPage(page)
+  await products.checkLogo()
+  await products.addToCar()
 
-  await page.getByRole("button", { name: "Continue" }).click();
-
-
-  await expect(page.locator('//div[@class="summary_info"]')).toBeVisible()
-
-  await page.getByRole("button", { name: "Finish" }).click();
-
-
-  await expect(page.locator('//h2[@class="complete-header"]')).toBeVisible()
+  const cart = new CartPage(page)
+  await cart.checkTitle()
+  await cart.clickOnCheckout()
   
+  const checkoutOnePage = new CheckoutOnePage(page)
+  await checkoutOnePage.checkTitle()
+  await checkoutOnePage.fillInformation()
+  await checkoutOnePage.clickOnContinue()
 
-  await page.screenshot({ path: "screenshot/purchase_an_item.png", fullPage: true });
+  const checkoutTwoPage = new CheckoutTwoPage(page)
+  await checkoutTwoPage.checkTitle()
+  await checkoutTwoPage.clickOnFinish()
+
+  const checkoutCompletePage = new CheckoutCompletePage(page)
+  checkoutCompletePage.checkMessageFinish()
+
+  await page.screenshot({
+    path: "screenshot/purchase_an_item.png",
+    fullPage: true,
+  });
+  //await page.screenshot({ path: "screenshot/purchase.png", fullPage: true });
   //await page.pause()
 });
