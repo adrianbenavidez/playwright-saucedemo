@@ -1,4 +1,4 @@
-import { Locator, Page } from "@playwright/test";
+import { expect, Locator, Page } from "@playwright/test";
 
 export class LoginPage {
   private readonly userNameTextBox: Locator;
@@ -11,17 +11,22 @@ export class LoginPage {
     this.loginButton = page.locator("input[id='login-button']");
   }
 
-  async fillUserName(){
-    this.userNameTextBox.fill("standard_user")
+  async fillUserName(userName: string) {
+    await this.userNameTextBox.fill(userName);
   }
 
-  async fillPassword(){
-    this.passwordTextBox.fill("secret_sauce")
+  async fillPassword(password: string) {
+    await this.passwordTextBox.fill(password);
   }
 
-  async clickOnLogin(){
-    this.loginButton.click()
+  async clickOnLogin() {
+    await this.loginButton.click();
   }
 
+  async loginWithCredentials(userName: string, password: string) {
+    await this.fillUserName(userName);
+    await this.fillPassword(password);
+    await this.clickOnLogin();
+  }  
 
 }
